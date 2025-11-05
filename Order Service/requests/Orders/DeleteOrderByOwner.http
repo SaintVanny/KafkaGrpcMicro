@@ -1,0 +1,32 @@
+### IMPORTANT: First login as user
+
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "Diman",
+  "password": "Diman123"
+}
+
+> {%
+    client.global.set("auth_token", response.body.token);
+%}
+
+### secondly create order
+
+POST http://localhost:8080/api/orders
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "description": "Order dva - pelmeny delivery"
+}
+
+> {%
+    client.global.set("order_id", response.body.id);
+%}
+
+### Target endpoint
+
+DELETE http://localhost:8080/api/orders/{{order_id}}
+Authorization: Bearer {{auth_token}}

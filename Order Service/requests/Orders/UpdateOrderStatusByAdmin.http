@@ -1,0 +1,24 @@
+### Firstly login as ADMIN
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin"
+}
+
+> {%
+    client.global.set("admin_token", response.body.token);
+    client.log("✓ Admin logged in, token: " + response.body.token.substring(0, 30) + "...");
+%}
+
+### target endpoint
+@id =75c2ea7c-1519-4c05-8e95-dc30804ff7ae
+
+PUT http://localhost:8080/api/orders/{{id}}
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+"status": "IN_PROGRESS"
+}

@@ -1,0 +1,144 @@
+### ========================================
+### WORKFLOW TEST: Register → Login → Create Order
+### ========================================
+
+### 6.1. Register new user
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "user1",
+  "password": "password"
+}
+
+> {%
+    client.test("Status is 201 Created", function() {
+        client.assert(response.status === 201, "Expected 201, got " + response.status);
+    });
+
+    if (response.body && response.body.token) {
+        client.global.set("user1_token", response.body.token);
+        client.log("✓ User 'user1' registered successfully");
+        client.log("  Token: " + response.body.token.substring(0, 30) + "...");
+    } else {
+        client.log("✗ Registration failed or user already exists");
+    }
+%}
+
+### 6.2. Get token (login)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "user1",
+  "password": "password"
+}
+
+> {%
+    client.test("Status is 200 OK", function() {
+        client.assert(response.status === 200, "Expected 200, got " + response.status);
+    });
+
+    if (response.body && response.body.token) {
+        client.global.set("user1_token", response.body.token);
+        client.log("✓ User 'user1' logged in successfully");
+        client.log("  Token: " + response.body.token.substring(0, 30) + "...");
+    }
+%}
+
+### 6.3. Create order
+POST http://localhost:8080/api/orders
+Authorization: Bearer {{user1_token}}
+Content-Type: application/json
+
+{
+  "description": "Новый заказ"
+}
+
+> {%
+    client.test("Status is 201 Created", function() {
+        client.assert(response.status === 201, "Expected 201, got " + response.status);
+    });
+
+    client.test("Order has required fields", function() {
+        client.assert(response.body.id !== undefined, "Order ID should be present");
+        client.assert(response.body.description === "Новый заказ", "Description should match");
+        client.assert(response.body.status === "CREATED", "Status should be CREATED");
+        client.assert(response.body.username === "user1", "Username should be user1");
+    });
+
+    if (response.body && response.body.id) {
+        client.global.set("user1_order_id", response.body.id);
+        client.log("✓ Order created successfully");
+        client.log("  Order ID: " + response.body.id);
+        client.log("  Description: " + response.body.description);
+        client.log("  Status: " + response.body.status);
+        client.log("  Owner: " + response.body.username);
+    }
+%}
+
+### ========================================
+### ADDITIONAL TESTS
+### ========================================
+
+### Get my orders
+GET http://localhost:8080/api/orders
+Authorization: Bearer {{user1_token}}
+
+> {%
+    client.test("Status is 200 OK", function() {
+        client.assert(response.status === 200, "Expected 200, got " + response.status);
+    });
+
+    client.test("Response is array", function() {
+        client.assert(Array.isArray(response.body), "Response should be an array");
+    });
+
+    client.test("Orders belong to user1", function() {
+        response.body.forEach(order => {
+            client.assert(order.username === "user1", "All orders should belong to user1");
+        });
+    });
+
+    client.log("✓ User has " + response.body.length + " order(s)");
+%}
+
+### Try to access all orders                 (should FAIL with 403)
+GET http://localhost:8080/api/orders/all
+Authorization: Bearer {{user1_token}}
+
+> {%
+    client.test("Status is 403 Forbidden", function() {
+        client.assert(response.status === 403, "Expected 403, got " + response.status);
+    });
+
+    client.log("✓ User correctly denied access to all orders (ADMIN only)");
+%}
+
+### Delete own order (should SUCCESS)
+DELETE http://localhost:8080/api/orders/{{user1_order_id}}
+Authorization: Bearer {{user1_token}}
+
+> {%
+    client.test("Status is 200 OK", function() {
+        client.assert(response.status === 200, "Expected 200, got " + response.status);
+    });
+
+    client.test("Response has success message", function() {
+        client.assert(response.body.message !== undefined, "Message should be present");
+    });
+
+    client.log("✓ " + response.body.message);
+%}
+
+### ========================================
+### SUMMARY
+### ========================================
+### ✓ Workflow completed:
+### 1. User registered (or logged in if already exists)
+### 2. JWT token obtained
+### 3. Order created with authentication
+### 4. Orders retrieved (only own orders visible)
+### 5. Access to admin endpoint denied (403)
+### 6. Order deleted successfully
+### ========================================

@@ -1,0 +1,47 @@
+### IMPORTANT: First login as admin
+
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin"
+}
+
+> {%
+    client.global.set("admin_token", response.body.token);
+    client.log("✓ Admin logged in");
+%}
+
+### Secondly get all orders and pick random one
+
+GET http://localhost:8080/api/orders/all
+Authorization: Bearer {{admin_token}}
+
+> {%
+    if (response.body && response.body.length > 0) {
+        // Take random order from the list
+        const randomIndex = Math.floor(Math.random() * response.body.length);
+        const randomOrder = response.body[randomIndex];
+
+        client.global.set("random_order_id", randomOrder.id);
+        client.log("✓ Selected random order: " + randomOrder.id);
+        client.log("  Owner: " + randomOrder.username);
+        client.log("  Description: " + randomOrder.description);
+        client.log("  Status: " + randomOrder.status);
+    } else {
+        client.log("✗ No orders found in the system");
+    }
+%}
+
+### Target endpoint Delete random order as ADMIN
+
+DELETE http://localhost:8080/api/orders/{{random_order_id}}
+Authorization: Bearer {{admin_token}}
+
+> {%
+    client.test("Status is 204 No Content", function() {
+        client.assert(response.status === 204, "Expected 204, got " + response.status);
+    });
+    client.log("✓ Admin successfully deleted order: " + client.global.get("random_order_id"));
+%}

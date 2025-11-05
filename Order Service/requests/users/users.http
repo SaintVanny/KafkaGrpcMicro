@@ -1,0 +1,43 @@
+### IMPORTANT: First run admin-login.http to get admin_token!!!!
+### Login as ADMIN
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin"
+}
+
+> {%
+    client.global.set("admin_token", response.body.token);
+    client.log("✓ Admin logged in, token: " + response.body.token.substring(0, 30) + "...");
+%}
+
+### Get all users
+GET http://localhost:8080/api/users
+Authorization: Bearer {{admin_token}}
+
+> {%
+    // Save first user ID for delete test
+    if (response.body.length > 1) {
+        const nonAdminUser = response.body.find(u => u.username !== "admin");
+        if (nonAdminUser) {
+            client.global.set("test_user_id", nonAdminUser.id);
+            client.log("✓ Test user ID saved: " + nonAdminUser.id);
+        }
+    }
+%}
+
+### Delete user by ID
+DELETE http://localhost:8080/api/users/{{test_user_id}}
+#DELETE http://localhost:8080/api/users/e9a2765a-5ef5-4c08-930d-82bdacf898a0
+Authorization: Bearer {{admin_token}}
+
+> {%
+    client.test("Status is 204", function() {
+        client.assert(response.status === 204, "Expected 204, got " + response.status);
+    });
+
+    client.log("✓ User deleted successfully");
+%}
+

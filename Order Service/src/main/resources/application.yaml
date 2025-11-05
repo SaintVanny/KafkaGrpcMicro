@@ -1,0 +1,35 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/orders_db
+    username: admin
+    password: admin
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+
+  docker:
+    compose:
+      file: docker-compose.yml # need to each micro
+
+jwt:
+  secret: my-256-bit-secret-key-change-this-in-production-please-make-it-long-enough-for-hs256
+  expiration: 86400000  # 24 hours
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{correlationId}] %-5level %logger{36} - %msg%n"
+  level:
+    com.vanna.restorders: info
+    org.springframework.web: INFO
+    org.springframework.security: INFO
