@@ -18,10 +18,6 @@ spring:
     enabled: true
     change-log: classpath:db/changelog/db.changelog-master.yaml
 
-  docker:
-    compose:
-      file: docker-compose.yml # need to each micro
-
 jwt:
   secret: my-256-bit-secret-key-change-this-in-production-please-make-it-long-enough-for-hs256
   expiration: 86400000  # 24 hours
