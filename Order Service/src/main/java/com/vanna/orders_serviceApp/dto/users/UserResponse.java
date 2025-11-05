@@ -22,6 +22,9 @@ public class UserResponse {
     @Schema(description = "Username", example = "user1")
     private String username;
 
+    @Schema(description = "User email address", example = "user@example.com")
+    private String email;
+
     @Schema(description = "User role", example = "USER", allowableValues = {"USER", "ADMIN"})
     private UserRole role;
 

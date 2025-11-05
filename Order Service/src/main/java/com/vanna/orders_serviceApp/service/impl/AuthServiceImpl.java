@@ -35,22 +35,30 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        log.debug("User registration attempt: username={}", request.getUsername());
+        log.debug("User registration attempt: username={}, email={}", request.getUsername(), request.getEmail());
 
         if (userRepository.existsByUsername(request.getUsername())) {
             log.warn("Registration failed - username already exists: username={}", request.getUsername());
             throw new RestOrdersException(HttpStatus.CONFLICT, "Username already exists");
         }
 
+        if (request.getEmail() != null && !request.getEmail().isBlank()) {
+            if (userRepository.existsByEmail(request.getEmail())) {
+                log.warn("Registration failed - email already exists: email={}", request.getEmail());
+                throw new RestOrdersException(HttpStatus.CONFLICT, "Email already exists");
+            }
+        }
+
         User user = User.builder()
                 .username(request.getUsername())
+                .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(UserRole.USER)
                 .build();
 
         User savedUser = userRepository.save(user);
-        log.info("User registered successfully: userId={}, username={}, role={}",
-                savedUser.getId(), savedUser.getUsername(), savedUser.getRole());
+        log.info("User registered successfully: userId={}, username={}, email={}, role={}",
+                savedUser.getId(), savedUser.getUsername(), savedUser.getEmail(), savedUser.getRole());
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
         String token = jwtUtil.generateToken(userDetails);
@@ -62,22 +70,23 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse login(LoginRequest request) {
-        log.debug("User login attempt: username={}", request.getUsername());
+        String identifier = request.getUsername(); 
+        log.debug("User login attempt: identifier={}", identifier);
 
-        User user = userRepository.findByUsername(request.getUsername())
+        User user = userRepository.findByUsernameOrEmail(identifier)
                 .orElseThrow(() -> {
-                    log.warn("Login failed - user not found: username={}", request.getUsername());
+                    log.warn("Login failed - user not found: identifier={}", identifier);
                     return new RestOrdersException(HttpStatus.NOT_FOUND, "User not found");
                 });
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            log.warn("Login failed - invalid password: username={}", request.getUsername());
+            log.warn("Login failed - invalid password: username={}", user.getUsername());
             throw new RestOrdersException(HttpStatus.FORBIDDEN, "Invalid password");
         }
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
+        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
         String token = jwtUtil.generateToken(userDetails);
-        log.info("User logged in successfully: username={}", request.getUsername());
+        log.info("User logged in successfully: username={}, email={}", user.getUsername(), user.getEmail());
 
         return AuthResponse.builder()
                 .token(token)

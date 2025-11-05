@@ -11,10 +11,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Тесты для UserMapper
- * Проверяют корректность маппинга User entity → UserResponse DTO
- */
 @SpringBootTest
 class UserMapperTest {
 
@@ -28,16 +24,16 @@ class UserMapperTest {
         User user = User.builder()
                 .id(userId)
                 .username("testuser")
+                .email("test@example.com")
                 .role(UserRole.USER)
                 .build();
 
-        // When
         UserResponse response = userMapper.toResponse(user);
 
-        // Then
         assertThat(response).isNotNull();
         assertThat(response.getId()).isEqualTo(userId);
         assertThat(response.getUsername()).isEqualTo("testuser");
+        assertThat(response.getEmail()).isEqualTo("test@example.com");
         assertThat(response.getRole()).isEqualTo(UserRole.USER);
     }
 
@@ -50,20 +46,15 @@ class UserMapperTest {
                 .role(UserRole.ADMIN)
                 .build();
 
-        // When
         UserResponse response = userMapper.toResponse(admin);
-
-        // Then
+        
         assertThat(response).isNotNull();
         assertThat(response.getRole()).isEqualTo(UserRole.ADMIN);
     }
 
     @Test
     void toResponse_shouldReturnNull_whenUserIsNull() {
-        // When
         UserResponse response = userMapper.toResponse(null);
-
-        // Then
         assertThat(response).isNull();
     }
 }
