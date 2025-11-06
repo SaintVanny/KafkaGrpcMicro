@@ -37,22 +37,29 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderResponse createOrder(CreateOrderRequest request) {
         UUID orderId = correlationIdProvider.getCurrentCorrelationId();
-        log.debug("Creating order: orderId={}, description={}", orderId, request.getDescription());
+        log.debug("Creating order: orderId={}, productId={}, quantity={}, orderName={}",
+                orderId, request.getProductId(), request.getQuantity(), request.getOrderName());
 
         User currentUser = userService.getCurrentAuthenticatedUser();
         log.debug("Order will be created for user: userId={}, username={}",
                 currentUser.getId(), currentUser.getUsername());
 
+        // TODO: Phase 4 - Add gRPC call to check product availability
+        // checkProductAvailability(request.getProductId(), request.getQuantity());
+
         Order order = new Order();
         order.setId(orderId);
         order.setUser(currentUser);
-        order.setDescription(request.getDescription());
+        order.setProductId(request.getProductId());
+        order.setQuantity(request.getQuantity());
+        order.setOrderName(request.getOrderName());
         order.setStatus(OrderStatus.CREATED);
 
         try {
             Order savedOrder = orderRepository.save(order);
-            log.info("Order created successfully: orderId={}, userId={}, status={}",
-                    savedOrder.getId(), savedOrder.getUser().getId(), savedOrder.getStatus());
+            log.info("Order created successfully: orderId={}, userId={}, productId={}, quantity={}, status={}",
+                    savedOrder.getId(), savedOrder.getUser().getId(),
+                    savedOrder.getProductId(), savedOrder.getQuantity(), savedOrder.getStatus());
             return orderMapper.toResponse(savedOrder);
         } catch (Exception e) {
             log.error("Failed to create order: orderId={}, userId={}, error={}",
@@ -122,12 +129,12 @@ public class OrderServiceImpl implements OrderService {
             throw new RestOrdersException(HttpStatus.FORBIDDEN, "Access denied: You can only delete your own orders");
         }
 
-        String orderDescription = order.getDescription();
+        String orderNameForResponse = order.getOrderName();
         orderRepository.delete(order);
         log.info("Order deleted successfully: orderId={}, deletedBy={}",
                 orderId, currentUser.getUsername());
 
-        return "Order '" + orderDescription + "' (ID: " + orderId + ") has been successfully deleted";
+        return "Order '" + orderNameForResponse + "' (ID: " + orderId + ") has been successfully deleted";
     }
 
     private Order findOrderById(UUID orderId) {

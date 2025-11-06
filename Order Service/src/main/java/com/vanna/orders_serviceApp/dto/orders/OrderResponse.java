@@ -26,8 +26,14 @@ public class OrderResponse {
     @Schema(description = "Owner username", example = "user1")
     private String username;
 
-    @Schema(description = "Order description", example = "New laptop order")
-    private String description;
+    @Schema(description = "Product ID", example = "123e4567-e89b-12d3-a456-426614174002")
+    private UUID productId;
+
+    @Schema(description = "Quantity of products", example = "5")
+    private Integer quantity;
+
+    @Schema(description = "Order name", example = "Office laptops order")
+    private String orderName;
 
     @Schema(description = "Order status", example = "CREATED", allowableValues = {"CREATED", "IN_PROGRESS", "COMPLETED"})
     private OrderStatus status;

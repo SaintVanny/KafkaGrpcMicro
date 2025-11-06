@@ -18,7 +18,6 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Order {
 
-
     @Id
     @Column(name = "id", nullable = false)
     private UUID id;
@@ -27,8 +26,14 @@ public class Order {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
-    private String description;
+    @Column(name = "product_id", nullable = false)
+    private UUID productId;
+
+    @Column(name = "quantity", nullable = false)
+    private Integer quantity;
+
+    @Column(name = "order_name", nullable = false, columnDefinition = "TEXT")
+    private String orderName;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
