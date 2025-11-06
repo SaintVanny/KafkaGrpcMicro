@@ -1,5 +1,6 @@
 package com.vanna.orders_serviceApp.service.impl;
 
+import com.vanna.orders_serviceApp.dto.users.UpdateUserRequest;
 import com.vanna.orders_serviceApp.dto.users.UserResponse;
 import com.vanna.orders_serviceApp.entity.User;
 import com.vanna.orders_serviceApp.exception.RestOrdersException;
@@ -33,6 +34,56 @@ public class UserServiceImpl implements UserService {
         log.info("Found {} users in system", users.size());
 
         return userMapper.toResponseList(users);
+    }
+
+    @Override
+    public UserResponse getUserById(UUID id) {
+        log.debug("Fetching user by ID: userId={}", id);
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("User not found: userId={}", id);
+                    return new RestOrdersException(HttpStatus.NOT_FOUND, "User not found with id: " + id);
+                });
+
+        log.debug("User found: userId={}, username={}", user.getId(), user.getUsername());
+        return userMapper.toResponse(user);
+    }
+
+    @Override
+    @Transactional
+    public UserResponse updateUser(UUID id, UpdateUserRequest request) {
+        log.debug("Attempting to update user: userId={}, updateData={}", id, request);
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("User not found for update: userId={}", id);
+                    return new RestOrdersException(HttpStatus.NOT_FOUND, "User not found with id: " + id);
+                });
+        User currentUser = getCurrentAuthenticatedUser();
+
+        boolean isSelfEdit = currentUser.getId().equals(id);
+        boolean roleChanged = request.getRole() != currentUser.getRole() && request.getRole() != null;
+        if (isSelfEdit && roleChanged) {
+            log.warn("Admin attempting to change own role: userId={}, currentRole={}, requestedRole={}",
+                    id, user.getRole(), request.getRole());
+            throw new RestOrdersException(HttpStatus.FORBIDDEN, "Cannot change your own role");
+        }
+
+        boolean emailChanged = request.getEmail() != null && !request.getEmail().equals(user.getEmail());
+        boolean existsByEmail = userRepository.existsByEmail(request.getEmail());
+        if (emailChanged && existsByEmail) {
+            log.warn("Email already in use: email={}", request.getEmail());
+            throw new RestOrdersException(HttpStatus.CONFLICT, "Email already in use: " +
+                    request.getEmail());
+        }
+        userMapper.updateUserFromDto(request, user);
+
+        User updatedUser = userRepository.save(user);
+        log.info("User updated successfully: userId={}, username={}, newEmail={}, newRole={}",
+                updatedUser.getId(), updatedUser.getUsername(), updatedUser.getEmail(), updatedUser.getRole());
+
+        return userMapper.toResponse(updatedUser);
     }
 
     @Override

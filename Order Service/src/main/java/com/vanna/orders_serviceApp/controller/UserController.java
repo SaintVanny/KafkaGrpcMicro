@@ -2,12 +2,16 @@ package com.vanna.orders_serviceApp.controller;
 
 import com.vanna.orders_serviceApp.annotation.swagger.userAnnotation.DeleteUserOperation;
 import com.vanna.orders_serviceApp.annotation.swagger.userAnnotation.GetAllUsersOperation;
+import com.vanna.orders_serviceApp.annotation.swagger.userAnnotation.GetUserByIdOperation;
+import com.vanna.orders_serviceApp.annotation.swagger.userAnnotation.UpdateUserOperation;
 import com.vanna.orders_serviceApp.dto.MessageResponse;
+import com.vanna.orders_serviceApp.dto.users.UpdateUserRequest;
 import com.vanna.orders_serviceApp.dto.users.UserResponse;
 import com.vanna.orders_serviceApp.service.UserService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,6 +35,25 @@ public class UserController {
     public ResponseEntity<List<UserResponse>> getAllUsers() {
         List<UserResponse> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
+    }
+
+    @GetUserByIdOperation
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserResponse> getUserById(
+            @Parameter(description = "User ID", required = true) @PathVariable UUID id) {
+        UserResponse user = userService.getUserById(id);
+        return ResponseEntity.ok(user);
+    }
+
+    @UpdateUserOperation
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserResponse> updateUser(
+            @Parameter(description = "User ID", required = true) @PathVariable UUID id,
+            @Valid @RequestBody UpdateUserRequest request) {
+        UserResponse updatedUser = userService.updateUser(id, request);
+        return ResponseEntity.ok(updatedUser);
     }
 
     @DeleteUserOperation
