@@ -71,8 +71,7 @@ public class UserServiceImpl implements UserService {
         }
 
         boolean emailChanged = request.getEmail() != null && !request.getEmail().equals(user.getEmail());
-        boolean existsByEmail = userRepository.existsByEmail(request.getEmail());
-        if (emailChanged && existsByEmail) {
+        if (emailChanged && userRepository.existsByEmail(request.getEmail())) {
             log.warn("Email already in use: email={}", request.getEmail());
             throw new RestOrdersException(HttpStatus.CONFLICT, "Email already in use: " +
                     request.getEmail());
