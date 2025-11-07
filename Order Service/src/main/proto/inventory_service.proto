@@ -1,4 +1,4 @@
-syntax = "proto3"; //todo
+syntax = "proto3";
 
 option java_multiple_files = true;
 option java_package = "com.vanna.orders_serviceApp.grpc.inventory";
@@ -6,29 +6,17 @@ option java_outer_classname = "InventoryServiceProto";
 
 package inventory;
 
-// Inventory Service - provides product availability information
 service InventoryService {
-  // Check if product is available in requested quantity
   rpc CheckProductAvailability(CheckProductAvailabilityRequest) returns (CheckProductAvailabilityResponse);
 }
 
-// Request to check product availability
 message CheckProductAvailabilityRequest {
-  // Product UUID (string representation)
   string product_id = 1;
-
-  // Requested quantity
   int32 quantity = 2;
 }
 
-// Response with product availability information
 message CheckProductAvailabilityResponse {
-  // Is product available in requested quantity
   bool available = 1;
-
-  // Human-readable message explaining availability status
   string message = 2;
-
-  // Actual stock available (0 if product not found)
   int32 actual_stock = 3;
 }
