@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.UUID;
 
 @Slf4j
-// @Component  //todo turn off soinventory-service isnot workin 
+@Component //todo turn off soinventory-service isnot workin 
 public class InventoryGrpcClient {
     
     @GrpcClient("inventory-service")

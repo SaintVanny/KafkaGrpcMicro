@@ -1,5 +1,6 @@
 package com.vanna.orders_serviceApp.service.impl;
 
+import com.vanna.orders_serviceApp.client.InventoryGrpcClient;
 import com.vanna.orders_serviceApp.config.correlationId.CorrelationIdProvider;
 import com.vanna.orders_serviceApp.dto.orders.CreateOrderRequest;
 import com.vanna.orders_serviceApp.dto.orders.OrderResponse;
@@ -9,6 +10,7 @@ import com.vanna.orders_serviceApp.entity.User;
 import com.vanna.orders_serviceApp.entity.enm.OrderStatus;
 import com.vanna.orders_serviceApp.entity.enm.UserRole;
 import com.vanna.orders_serviceApp.exception.RestOrdersException;
+import com.vanna.orders_serviceApp.grpc.inventory.CheckProductAvailabilityResponse;
 import com.vanna.orders_serviceApp.mapper.OrderMapper;
 import com.vanna.orders_serviceApp.repository.OrderRepository;
 import com.vanna.orders_serviceApp.service.OrderService;
@@ -32,6 +34,7 @@ public class OrderServiceImpl implements OrderService {
     private final UserService userService;
     private final OrderMapper orderMapper;
     private final CorrelationIdProvider correlationIdProvider;
+    private final InventoryGrpcClient inventoryGrpcClient;
 
     @Override
     @Transactional
@@ -44,8 +47,8 @@ public class OrderServiceImpl implements OrderService {
         log.debug("Order will be created for user: userId={}, username={}",
                 currentUser.getId(), currentUser.getUsername());
 
-        // TODO: Phase 4 - Add gRPC call to check product availability
-        // checkProductAvailability(request.getProductId(), request.getQuantity());
+        // gRPC call to check product availability
+        checkProductAvailability(request.getProductId(), request.getQuantity());
 
         Order order = new Order();
         order.setId(orderId);
@@ -151,5 +154,25 @@ public class OrderServiceImpl implements OrderService {
     
     private boolean isAdmin(User user) {
         return user.getRole() == UserRole.ADMIN;
+    }
+    
+    private void checkProductAvailability(UUID productId, Integer quantity) {
+        log.debug("Checking inventory for product: productId={}, quantity={}", productId, quantity);
+
+        CheckProductAvailabilityResponse response =
+                inventoryGrpcClient.checkProductAvailability(productId, quantity);
+
+        if (!response.getAvailable()) {
+            log.warn("Product unavailable: productId={}, requestedQuantity={}, actualStock={}",
+                    productId, quantity, response.getActualStock());
+
+            throw new RestOrdersException(
+                    HttpStatus.BAD_REQUEST,
+                    String.format("Product is not available. Requested: %d, Available: %d. %s",
+                            quantity, response.getActualStock(), response.getMessage())
+            );
+        }
+
+        log.info("Product availability confirmed: productId={}, quantity={}", productId, quantity);
     }
 }
