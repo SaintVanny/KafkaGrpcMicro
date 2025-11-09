@@ -1,5 +1,6 @@
 package com.vanna.orders_serviceApp.service.impl;
 
+import com.vanna.orders_serviceApp.client.InventoryGrpcClient;
 import com.vanna.orders_serviceApp.config.correlationId.CorrelationIdProvider;
 import com.vanna.orders_serviceApp.dto.orders.CreateOrderRequest;
 import com.vanna.orders_serviceApp.dto.orders.OrderResponse;
@@ -9,6 +10,7 @@ import com.vanna.orders_serviceApp.entity.User;
 import com.vanna.orders_serviceApp.entity.enm.OrderStatus;
 import com.vanna.orders_serviceApp.entity.enm.UserRole;
 import com.vanna.orders_serviceApp.exception.RestOrdersException;
+import com.vanna.orders_serviceApp.grpc.inventory.CheckProductAvailabilityResponse;
 import com.vanna.orders_serviceApp.mapper.OrderMapper;
 import com.vanna.orders_serviceApp.repository.OrderRepository;
 import com.vanna.orders_serviceApp.service.OrderService;
@@ -32,27 +34,35 @@ public class OrderServiceImpl implements OrderService {
     private final UserService userService;
     private final OrderMapper orderMapper;
     private final CorrelationIdProvider correlationIdProvider;
+    private final InventoryGrpcClient inventoryGrpcClient;
 
     @Override
     @Transactional
     public OrderResponse createOrder(CreateOrderRequest request) {
         UUID orderId = correlationIdProvider.getCurrentCorrelationId();
-        log.debug("Creating order: orderId={}, description={}", orderId, request.getDescription());
+        log.debug("Creating order: orderId={}, productId={}, quantity={}, orderName={}",
+                orderId, request.getProductId(), request.getQuantity(), request.getOrderName());
 
         User currentUser = userService.getCurrentAuthenticatedUser();
         log.debug("Order will be created for user: userId={}, username={}",
                 currentUser.getId(), currentUser.getUsername());
 
+        // gRPC call to check product availability
+        checkProductAvailability(request.getProductId(), request.getQuantity());
+
         Order order = new Order();
         order.setId(orderId);
         order.setUser(currentUser);
-        order.setDescription(request.getDescription());
+        order.setProductId(request.getProductId());
+        order.setQuantity(request.getQuantity());
+        order.setOrderName(request.getOrderName());
         order.setStatus(OrderStatus.CREATED);
 
         try {
             Order savedOrder = orderRepository.save(order);
-            log.info("Order created successfully: orderId={}, userId={}, status={}",
-                    savedOrder.getId(), savedOrder.getUser().getId(), savedOrder.getStatus());
+            log.info("Order created successfully: orderId={}, userId={}, productId={}, quantity={}, status={}",
+                    savedOrder.getId(), savedOrder.getUser().getId(),
+                    savedOrder.getProductId(), savedOrder.getQuantity(), savedOrder.getStatus());
             return orderMapper.toResponse(savedOrder);
         } catch (Exception e) {
             log.error("Failed to create order: orderId={}, userId={}, error={}",
@@ -122,12 +132,12 @@ public class OrderServiceImpl implements OrderService {
             throw new RestOrdersException(HttpStatus.FORBIDDEN, "Access denied: You can only delete your own orders");
         }
 
-        String orderDescription = order.getDescription();
+        String orderNameForResponse = order.getOrderName();
         orderRepository.delete(order);
         log.info("Order deleted successfully: orderId={}, deletedBy={}",
                 orderId, currentUser.getUsername());
 
-        return "Order '" + orderDescription + "' (ID: " + orderId + ") has been successfully deleted";
+        return "Order '" + orderNameForResponse + "' (ID: " + orderId + ") has been successfully deleted";
     }
 
     private Order findOrderById(UUID orderId) {
@@ -144,5 +154,25 @@ public class OrderServiceImpl implements OrderService {
     
     private boolean isAdmin(User user) {
         return user.getRole() == UserRole.ADMIN;
+    }
+    
+    private void checkProductAvailability(UUID productId, Integer quantity) {
+        log.debug("Checking inventory for product: productId={}, quantity={}", productId, quantity);
+
+        CheckProductAvailabilityResponse response =
+                inventoryGrpcClient.checkProductAvailability(productId, quantity);
+
+        if (!response.getAvailable()) {
+            log.warn("Product unavailable: productId={}, requestedQuantity={}, actualStock={}",
+                    productId, quantity, response.getActualStock());
+
+            throw new RestOrdersException(
+                    HttpStatus.BAD_REQUEST,
+                    String.format("Product is not available. Requested: %d, Available: %d. %s",
+                            quantity, response.getActualStock(), response.getMessage())
+            );
+        }
+
+        log.info("Product availability confirmed: productId={}, quantity={}", productId, quantity);
     }
 }

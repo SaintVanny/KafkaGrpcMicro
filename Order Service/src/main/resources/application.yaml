@@ -18,10 +18,6 @@ spring:
     enabled: true
     change-log: classpath:db/changelog/db.changelog-master.yaml
 
-  docker:
-    compose:
-      file: docker-compose.yml # need to each micro
-
 jwt:
   secret: my-256-bit-secret-key-change-this-in-production-please-make-it-long-enough-for-hs256
   expiration: 86400000  # 24 hours
@@ -33,3 +29,30 @@ logging:
     com.vanna.restorders: info
     org.springframework.web: INFO
     org.springframework.security: INFO
+
+
+grpc:
+  client:
+    inventory-service:
+      address: 'static://localhost:9090'  # change for production
+      negotiationType: PLAINTEXT
+      deadline: 3s
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowSize: 10                    
+        minimumNumberOfCalls: 5                  
+        permittedNumberOfCallsInHalfOpenState: 3 
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s             
+        failureRateThreshold: 50                 
+        slowCallRateThreshold: 100               
+        slowCallDurationThreshold: 2s            
+        recordExceptions:
+          - io.grpc.StatusRuntimeException       
+    instances:
+      inventory-service:
+        baseConfig: default

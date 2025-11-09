@@ -15,20 +15,34 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @ApiResponse(
         responseCode = "400",
-        description = "Invalid request data",
+        description = "Invalid request data or product unavailable",
         content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ErrorResponse.class),
-                examples = @ExampleObject(
-                        value = """
-                        {
-                          "status": 400,
-                          "error": "Bad Request",
-                          "message": "Validation failed",
-                          "timestamp": "2025-10-14T17:42:15.465Z"
-                        }
-                        """
-                )
+                examples = {
+                        @ExampleObject(
+                                name = "Validation Error",
+                                value = """
+                                {
+                                  "status": 400,
+                                  "error": "Bad Request",
+                                  "message": "Validation failed",
+                                  "timestamp": "2025-10-14T17:42:15.465Z"
+                                }
+                                """
+                        ),
+                        @ExampleObject(
+                                name = "Product Unavailable",
+                                value = """
+                                {
+                                  "status": 400,
+                                  "error": "Bad Request",
+                                  "message": "Product is not available. Requested: 10, Available: 3. Out of stock",
+                                  "timestamp": "2025-01-15T10:30:00"
+                                }
+                                """
+                        )
+                }
         )
 )
 public @interface ApiBadRequest {

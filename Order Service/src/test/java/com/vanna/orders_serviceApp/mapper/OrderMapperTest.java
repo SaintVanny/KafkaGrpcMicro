@@ -27,6 +27,7 @@ class OrderMapperTest {
         // Given
         UUID userId = UUID.randomUUID();
         UUID orderId = UUID.randomUUID();
+        UUID productId = UUID.randomUUID();
         LocalDateTime createdAt = LocalDateTime.now();
 
         User user = User.builder()
@@ -38,7 +39,9 @@ class OrderMapperTest {
         Order order = new Order();
         order.setId(orderId);
         order.setUser(user);
-        order.setDescription("Test order description");
+        order.setProductId(productId);
+        order.setQuantity(5);
+        order.setOrderName("Test order name");
         order.setStatus(OrderStatus.CREATED);
         order.setCreatedAt(createdAt);
 
@@ -50,7 +53,9 @@ class OrderMapperTest {
         assertThat(response.getId()).isEqualTo(orderId);
         assertThat(response.getUserId()).isEqualTo(userId);
         assertThat(response.getUsername()).isEqualTo("testuser");
-        assertThat(response.getDescription()).isEqualTo("Test order description");
+        assertThat(response.getProductId()).isEqualTo(productId);
+        assertThat(response.getQuantity()).isEqualTo(5);
+        assertThat(response.getOrderName()).isEqualTo("Test order name");
         assertThat(response.getStatus()).isEqualTo(OrderStatus.CREATED);
         assertThat(response.getCreatedAt()).isEqualTo(createdAt);
     }
@@ -67,7 +72,9 @@ class OrderMapperTest {
         Order inProgressOrder = new Order();
         inProgressOrder.setId(UUID.randomUUID());
         inProgressOrder.setUser(user);
-        inProgressOrder.setDescription("In progress order");
+        inProgressOrder.setProductId(UUID.randomUUID());
+        inProgressOrder.setQuantity(3);
+        inProgressOrder.setOrderName("In progress order");
         inProgressOrder.setStatus(OrderStatus.IN_PROGRESS);
         inProgressOrder.setCreatedAt(LocalDateTime.now());
 
@@ -99,14 +106,18 @@ class OrderMapperTest {
         Order order1 = new Order();
         order1.setId(UUID.randomUUID());
         order1.setUser(user);
-        order1.setDescription("Order 1");
+        order1.setProductId(UUID.randomUUID());
+        order1.setQuantity(2);
+        order1.setOrderName("Order 1");
         order1.setStatus(OrderStatus.CREATED);
         order1.setCreatedAt(LocalDateTime.now());
 
         Order order2 = new Order();
         order2.setId(UUID.randomUUID());
         order2.setUser(user);
-        order2.setDescription("Order 2");
+        order2.setProductId(UUID.randomUUID());
+        order2.setQuantity(7);
+        order2.setOrderName("Order 2");
         order2.setStatus(OrderStatus.IN_PROGRESS);
         order2.setCreatedAt(LocalDateTime.now());
 
@@ -117,9 +128,9 @@ class OrderMapperTest {
 
         // Then
         assertThat(responses).hasSize(2);
-        assertThat(responses.get(0).getDescription()).isEqualTo("Order 1");
+        assertThat(responses.get(0).getOrderName()).isEqualTo("Order 1");
         assertThat(responses.get(0).getStatus()).isEqualTo(OrderStatus.CREATED);
-        assertThat(responses.get(1).getDescription()).isEqualTo("Order 2");
+        assertThat(responses.get(1).getOrderName()).isEqualTo("Order 2");
         assertThat(responses.get(1).getStatus()).isEqualTo(OrderStatus.IN_PROGRESS);
     }
 

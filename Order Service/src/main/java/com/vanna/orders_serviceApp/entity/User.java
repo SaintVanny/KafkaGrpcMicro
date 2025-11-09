@@ -24,10 +24,13 @@ public class User {
     @Column(name = "id", nullable = false)
     private UUID id;
 
-    @Column(name = "username", nullable = false, unique = true, length = 255)
+    @Column(name = "username", nullable = false, unique = true)
     private String username;
-    
-    @Column(name = "password", nullable = false, length = 255)
+
+    @Column(name = "email", unique = true)
+    private String email;
+
+    @Column(name = "password", nullable = false)
     private String password;
     
     @Enumerated(EnumType.STRING)

@@ -1,0 +1,56 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-update-orders-for-grpc
+      author: order-service-team
+      comment: |
+        Update orders table for gRPC integration with Inventory Service:
+        1. Delete existing orders (dev environment cleanup)
+        2. Add product_id (product UUID)
+        3. Add quantity (product quantity)
+        4. RENAME column description → order_name
+
+      changes:
+        - delete:
+            tableName: orders
+
+        - addColumn:
+            tableName: orders
+            columns:
+              - column:
+                  name: product_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                  remarks: "Product UUID from Inventory Service"
+
+        - addColumn:
+            tableName: orders
+            columns:
+              - column:
+                  name: quantity
+                  type: integer
+                  constraints:
+                    nullable: false
+                  remarks: "Quantity of products in order"
+
+        - renameColumn:
+            tableName: orders
+            oldColumnName: description
+            newColumnName: order_name
+            columnDataType: text
+            remarks: "RENAMED: description → order_name for better semantics"
+
+      rollback:
+        - renameColumn:
+            tableName: orders
+            oldColumnName: order_name
+            newColumnName: description
+            columnDataType: text
+
+        - dropColumn:
+            tableName: orders
+            columnName: quantity
+
+        - dropColumn:
+            tableName: orders
+            columnName: product_id
