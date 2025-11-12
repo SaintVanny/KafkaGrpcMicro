@@ -10,7 +10,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -27,7 +30,7 @@ public class ProductController {
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) {
+    public ResponseEntity<ProductResponse> getProductById(@PathVariable UUID id) {
         log.debug("REST request: GET /api/products/{}", id);
         ProductResponse product = productService.getProductById(id);
         return ResponseEntity.ok(product);
@@ -41,9 +44,13 @@ public class ProductController {
     }
     
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> deleteProduct(@PathVariable UUID id) {
         log.debug("REST request: DELETE /api/products/{}", id);
         productService.deleteProduct(id);
-        return ResponseEntity.noContent().build();
+        log.info("Product with ID {} successfully deleted", id);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Product with ID " + id + " successfully deleted");
+        return ResponseEntity.ok(response);
     }
 }

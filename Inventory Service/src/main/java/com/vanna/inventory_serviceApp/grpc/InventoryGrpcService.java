@@ -27,10 +27,10 @@ public class InventoryGrpcService extends InventoryServiceGrpc.InventoryServiceI
             log.info("gRPC request received: productId={}, quantity={}",
                     request.getProductId(), request.getQuantity());
 
-            if (request.getProductId() <= 0) {
+            if (request.getProductId() == null || request.getProductId().trim().isEmpty()) {
                 responseObserver.onError(
                         Status.INVALID_ARGUMENT
-                                .withDescription("Product ID must be greater than 0")
+                                .withDescription("Product ID cannot be empty")
                                 .asRuntimeException()
                 );
                 return;

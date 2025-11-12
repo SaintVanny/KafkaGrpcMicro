@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -25,10 +26,18 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public CheckProductAvailabilityResponse checkAvailability(Long productId, Integer quantity) {
+    public CheckProductAvailabilityResponse checkAvailability(String productId, Integer quantity) {
         log.debug("Checking product availability: productId={}, requestedQuantity={}", productId, quantity);
 
-        Product product = productRepository.findById(productId).orElse(null);
+        UUID uuid;
+        try {
+            uuid = UUID.fromString(productId);
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid UUID format: {}", productId);
+            return productMapper.toGrpcResponse(null, false, "Invalid product ID format");
+        }
+
+        Product product = productRepository.findById(uuid).orElse(null);
         if (product == null) {
             log.warn("Product not found: id={}", productId);
             return productMapper.toGrpcResponse(null, false, "Product not found");
@@ -59,7 +68,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public ProductResponse getProductById(Long id) {
+    public ProductResponse getProductById(UUID id) {
         log.debug("Getting product by id: {}", id);
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> {
@@ -75,6 +84,7 @@ public class ProductServiceImpl implements ProductService {
         log.debug("Creating product: {}", request);
 
         Product product = productMapper.toEntity(request);
+        product.setId(UUID.randomUUID());//todo
         Product savedProduct = productRepository.save(product);
 
         log.info("Product created: id={}, name={}", savedProduct.getId(), savedProduct.getName());
@@ -83,7 +93,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public void deleteProduct(Long id) {
+    public void deleteProduct(UUID id) {
         log.debug("Deleting product: id={}", id);
 
         if (!productRepository.existsById(id)) {

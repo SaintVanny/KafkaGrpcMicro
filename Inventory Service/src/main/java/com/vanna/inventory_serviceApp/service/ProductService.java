@@ -5,16 +5,17 @@ import com.vanna.inventory_serviceApp.dto.ProductResponse;
 import com.vanna.inventory_serviceApp.grpc.inventory.CheckProductAvailabilityResponse;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface ProductService {
-    
-    CheckProductAvailabilityResponse checkAvailability(Long productId, Integer quantity);
-    
+
+    CheckProductAvailabilityResponse checkAvailability(String productId, Integer quantity);
+
     List<ProductResponse> getAllProducts();
-    
-    ProductResponse getProductById(Long id);
-    
+
+    ProductResponse getProductById(UUID id);
+
     ProductResponse createProduct(ProductRequest request);
 
-    void deleteProduct(Long id);
+    void deleteProduct(UUID id);
 }
