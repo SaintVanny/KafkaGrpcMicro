@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-//@Tag(name = "Authentication", description = "User registration, login and profile information")
+//@Tag(name = "Authentication", description = "User registration, login and profile information") add swagger
 public class ProductController {
 
 }
