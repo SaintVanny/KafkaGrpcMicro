@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.7</version>
+        <version>3.3.6</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.vanna</groupId>
@@ -28,10 +28,23 @@
     </scm>
     <properties>
         <java.version>17</java.version>
-        <grpc.version>1.60.0</grpc.version>
+        <grpc.version>1.63.0</grpc.version>
         <protobuf.version>3.25.1</protobuf.version>
         <grpc-spring-boot-starter.version>3.1.0.RELEASE</grpc-spring-boot-starter.version>
     </properties>
+
+    <!-- versions managment for fix conflicts -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-bom</artifactId>
+                <version>${grpc.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -77,18 +90,15 @@
             <version>${grpc-spring-boot-starter.version}</version>
         </dependency>
 
-        <!-- gRPC Protobuf -->
+        <!-- versions grpc-protobuf and grpc-stub managed by grpc-bom in dependencyManagement -->
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-protobuf</artifactId>
-            <version>${grpc.version}</version>
         </dependency>
 
-        <!-- gRPC Stub -->
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-stub</artifactId>
-            <version>${grpc.version}</version>
         </dependency>
 
         <!-- Protocol Buffers -->
