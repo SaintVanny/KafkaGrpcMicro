@@ -2,7 +2,7 @@ spring:
   application:
     name: Inventory Service
   datasource:
-    url: jdbc:postgresql://localhost:5433/inventory_db
+    url: jdbc:postgresql://localhost:5432/inventory_db
     username: admin
     password: admin
     driver-class-name: org.postgresql.Driver
@@ -29,9 +29,18 @@ logging:
     com.vanna.inventory_serviceApp: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE  
-    io.grpc: DEBUG  # gRPC логи
+    io.grpc: DEBUG
 server:
   port: 8081
   error:
     include-message: always
     include-binding-errors: always
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
