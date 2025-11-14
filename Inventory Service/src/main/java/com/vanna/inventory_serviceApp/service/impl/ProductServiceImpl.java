@@ -84,7 +84,7 @@ public class ProductServiceImpl implements ProductService {
         log.debug("Creating product: {}", request);
 
         Product product = productMapper.toEntity(request);
-        product.setId(UUID.randomUUID());//todo
+        product.setId(UUID.randomUUID());
         Product savedProduct = productRepository.save(product);
 
         log.info("Product created: id={}, name={}", savedProduct.getId(), savedProduct.getName());
