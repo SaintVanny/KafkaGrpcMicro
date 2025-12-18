@@ -32,6 +32,10 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<OrderResponse> createOrder(@Valid @RequestBody CreateOrderRequest request) {
         OrderResponse response = orderService.createOrder(request);
+
+        if (response.getWarnings() != null && !response.getWarnings().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.MULTI_STATUS).body(response);
+        }
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

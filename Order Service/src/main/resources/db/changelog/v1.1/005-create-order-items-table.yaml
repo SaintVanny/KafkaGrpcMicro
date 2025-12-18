@@ -1,0 +1,60 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-1-clear-orders-table
+      author: vanna
+      changes:
+        - sql:
+            sql: DELETE FROM orders
+
+  - changeSet:
+      id: 005-2-create-order-items-table
+      author: vanna
+      changes:
+        - createTable:
+            tableName: order_items
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: order_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: product_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: quantity
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: order_items
+            baseColumnNames: order_id
+            referencedTableName: orders
+            referencedColumnNames: id
+            constraintName: fk_order_items_order_id
+            onDelete: CASCADE
+        - createIndex:
+            indexName: idx_order_items_order_id
+            tableName: order_items
+            columns:
+              - column:
+                  name: order_id
+
+  - changeSet:
+      id: 005-3-drop-product-columns-from-orders
+      author: vanna
+      changes:
+        - dropColumn:
+            tableName: orders
+            columnName: product_id
+        - dropColumn:
+            tableName: orders
+            columnName: quantity
