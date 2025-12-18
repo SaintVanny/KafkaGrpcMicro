@@ -8,6 +8,7 @@ package inventory;
 
 service InventoryService {
   rpc CheckProductAvailability(CheckProductAvailabilityRequest) returns (CheckProductAvailabilityResponse);
+  rpc CheckMultipleProductsAvailability(CheckMultipleProductsRequest) returns (CheckMultipleProductsResponse);
 }
 
 message CheckProductAvailabilityRequest {
@@ -21,4 +22,26 @@ message CheckProductAvailabilityResponse {
   int32 actual_stock = 3;
   double price = 4;
   double sale = 5;
+}
+
+message ProductAvailabilityItem {
+  string product_id = 1;
+  int32 quantity = 2;
+}
+
+message CheckMultipleProductsRequest {
+  repeated ProductAvailabilityItem items = 1;
+}
+
+message ProductAvailabilityResult {
+  string product_id = 1;
+  bool available = 2;
+  string message = 3;
+  int32 actual_stock = 4;
+  double price = 5;
+  double sale = 6;
+}
+
+message CheckMultipleProductsResponse {
+  repeated ProductAvailabilityResult results = 1;
 }

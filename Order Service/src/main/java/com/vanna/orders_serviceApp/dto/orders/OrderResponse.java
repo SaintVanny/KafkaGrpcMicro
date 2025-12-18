@@ -8,13 +8,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Schema(description = "Order information response")
+@Schema(description = "Order information response with multiple products")
 public class OrderResponse {
 
     @Schema(description = "Order unique identifier", example = "3fa85f64-5717-4562-b3fc-2c963f66afa6")
@@ -26,13 +28,11 @@ public class OrderResponse {
     @Schema(description = "Owner username", example = "user1")
     private String username;
 
-    @Schema(description = "Product ID", example = "123e4567-e89b-12d3-a456-426614174002")
-    private UUID productId;
+    @Schema(description = "List of products in the order")
+    @Builder.Default
+    private List<OrderItemResponse> items = new ArrayList<>();
 
-    @Schema(description = "Quantity of products", example = "5")
-    private Integer quantity;
-
-    @Schema(description = "Order name", example = "Office laptops order")
+    @Schema(description = "Order name", example = "Office supplies order")
     private String orderName;
 
     @Schema(description = "Order status", example = "CREATED", allowableValues = {"CREATED", "IN_PROGRESS", "COMPLETED"})
@@ -40,4 +40,8 @@ public class OrderResponse {
 
     @Schema(description = "Order creation timestamp", example = "2025-01-15T10:30:00")
     private LocalDateTime createdAt;
+
+    @Schema(description = "Warnings about unavailable products (for partial fulfillment)")
+    @Builder.Default
+    private List<String> warnings = new ArrayList<>();
 }

@@ -1,46 +1,34 @@
 package com.vanna.orders_serviceApp.dto.orders;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Request to create a new order")
+@Schema(description = "Request to create a new order with multiple products")
 public class CreateOrderRequest {
 
     @Schema(
-            description = "Product ID to order",
-            example = "123e4567-e89b-12d3-a456-426614174000",
+            description = "List of products to order (1-100 items)",
             requiredMode = Schema.RequiredMode.REQUIRED
     )
-    @NotNull(message = "Product ID is required")
-    private UUID productId;
-    
-    @Schema(
-            description = "Quantity of products",
-            example = "5",
-            minimum = "1",
-            maximum = "1000",
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    @NotNull(message = "Quantity is required")
-    @Min(value = 1, message = "Quantity must be at least 1")
-    @Max(value = 1000, message = "Quantity must not exceed 1000")
-    private Integer quantity;
-    
+    @NotEmpty(message = "Items list cannot be empty")
+    @Size(min = 1, max = 100, message = "Order must contain between 1 and 100 items")
+    @Valid
+    private List<OrderItemRequest> items;
+
     @Schema(
             description = "Order name (1-1000 characters)",
-            example = "Office laptops order",
+            example = "Office supplies order",
             minLength = 1,
             maxLength = 1000,
             requiredMode = Schema.RequiredMode.REQUIRED
