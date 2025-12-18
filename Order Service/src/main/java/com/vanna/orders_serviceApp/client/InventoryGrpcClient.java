@@ -10,9 +10,9 @@ import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
-
+//todo check please
 @Slf4j
-@Component //todo turn off soinventory-service isnot workin 
+@Component
 public class InventoryGrpcClient {
     
     @GrpcClient("inventory-service")

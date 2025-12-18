@@ -160,7 +160,7 @@ public class OrderServiceImpl implements OrderService {
         log.debug("Checking inventory for product: productId={}, quantity={}", productId, quantity);
 
         CheckProductAvailabilityResponse response =
-                inventoryGrpcClient.checkProductAvailability(productId, quantity);
+                inventoryGrpcClient.checkProductAvailability(productId, quantity);//todo check please
 
         if (!response.getAvailable()) {
             log.warn("Product unavailable: productId={}, requestedQuantity={}, actualStock={}",

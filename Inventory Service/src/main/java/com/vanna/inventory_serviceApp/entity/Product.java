@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 
 @Entity
 @Table(name = "products")
@@ -18,8 +20,8 @@ import lombok.NoArgsConstructor;
 public class Product {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)//todo
-    private Long id;
+    @Column(name = "id", nullable = false)
+    private UUID id;
 
     @NotNull(message = "Product name cannot be null")
     @Column(nullable = false)

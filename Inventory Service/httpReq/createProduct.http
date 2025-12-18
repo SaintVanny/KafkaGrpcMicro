@@ -1,0 +1,17 @@
+POST http://localhost:8081/api/products
+Content-Type: application/json
+Content-Length: 75
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+{
+  "name": "TestProduct1",
+  "quantity": 3,
+  "price": 1818,
+  "sale": 0
+}
+
+<> 2025-11-12T222148.201.json
+
+###

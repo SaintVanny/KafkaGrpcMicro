@@ -1,4 +1,7 @@
 spring:
+  docker:
+    compose:
+      enabled: false
   datasource:
     url: jdbc:postgresql://localhost:5432/orders_db
     username: admin
@@ -34,7 +37,7 @@ logging:
 grpc:
   client:
     inventory-service:
-      address: 'static://localhost:9090'  # change for production
+      address: 'static://localhost:9090'
       negotiationType: PLAINTEXT
       deadline: 3s
 
@@ -56,3 +59,12 @@ resilience4j:
     instances:
       inventory-service:
         baseConfig: default
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,circuitbreakers
+  endpoint:
+    health:
+      show-details: when-authorized
