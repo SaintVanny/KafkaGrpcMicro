@@ -7,3 +7,5 @@ databaseChangeLog:
       file: db/changelog/v1.0/003-add-email-to-users.yaml
   - include:
       file: db/changelog/v1.0/004-update-orders-for-grpc.yaml
+  - include:
+      file: db/changelog/v1.1/005-create-order-items-table.yaml
