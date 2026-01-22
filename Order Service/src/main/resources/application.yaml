@@ -79,3 +79,7 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+
+kafka:
+  topics:
+    orders: orders

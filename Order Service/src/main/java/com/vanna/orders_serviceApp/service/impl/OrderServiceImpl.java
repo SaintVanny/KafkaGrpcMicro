@@ -18,6 +18,7 @@ import com.vanna.orders_serviceApp.mapper.OrderMapper;
 import com.vanna.orders_serviceApp.repository.OrderRepository;
 import com.vanna.orders_serviceApp.service.OrderService;
 import com.vanna.orders_serviceApp.service.UserService;
+import com.vanna.orders_serviceApp.service.kafka.OrderKafkaProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -37,6 +38,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
     private final CorrelationIdProvider correlationIdProvider;
     private final InventoryGrpcClient inventoryGrpcClient;
+    private final OrderKafkaProducer orderKafkaProducer;
 
     @Override
     @Transactional
@@ -102,9 +104,16 @@ public class OrderServiceImpl implements OrderService {
 
         try {
             Order savedOrder = orderRepository.save(order);
-            log.info("Order created successfully: orderId={}, userId={}, totalItemsRequested={}, itemsCreated={}, warnings={}",
+            log.info("Order saved to database: orderId={}, userId={}, totalItemsRequested={}, itemsCreated={}, warnings={}",
                     savedOrder.getId(), savedOrder.getUser().getId(),
                     productQuantities.size(), savedOrder.getItems().size(), warnings.size());
+
+            try {
+                orderKafkaProducer.sendOrderEvent(savedOrder, availabilityResults);
+            } catch (RestOrdersException kafkaException) {
+                log.error("Order creation rolled back due to Kafka failure: orderId={}", savedOrder.getId());
+                throw kafkaException;
+            }
 
             OrderResponse response = orderMapper.toResponse(savedOrder);
             response.setWarnings(warnings);
