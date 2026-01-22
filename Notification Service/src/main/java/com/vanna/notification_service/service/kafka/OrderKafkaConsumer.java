@@ -10,6 +10,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,18 +35,25 @@ public class OrderKafkaConsumer {
                 log.warn("Order exists, skip: orderId={}", event.getOrderId());
                 return;
             }
+            
+            LocalDateTime createdAt = event.getCreatedAt();
+            if (createdAt == null) {
+                createdAt = LocalDateTime.now();
+                log.warn("createdAt is null in Kafka event, using fallback: orderId={}, fallbackTime={}",
+                        event.getOrderId(), createdAt);
+            } //todo remove it when fix null created_at in orderService
 
             List<OrderNotification> notifications = new ArrayList<>();
 
             for (OrderItemEvent item : event.getItems()) {
                 OrderNotification notification = new OrderNotification();
-                
+
                 notification.setOrderId(event.getOrderId());
                 notification.setUserId(event.getUserId());
-                notification.setUsername(event.getUsername());  
-                notification.setOrderName(event.getOrderName());  
+                notification.setUsername(event.getUsername());
+                notification.setOrderName(event.getOrderName());
                 notification.setStatus(event.getStatus());
-                notification.setCreatedAt(event.getCreatedAt());
+                notification.setCreatedAt(createdAt);
 
                 notification.setProductId(item.getProductId());
                 notification.setQuantity(item.getQuantity());
