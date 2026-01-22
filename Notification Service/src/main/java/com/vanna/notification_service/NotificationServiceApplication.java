@@ -11,7 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * 2. Stores data in denormalized PostgreSQL table
  * 3. Provides read-only REST API for analytics
  *
- * Port: 8081
+ * Port: 8082
  * Swagger UI: http://localhost:8081/swagger-ui.html
  */
 @SpringBootApplication
